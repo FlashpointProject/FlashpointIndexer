@@ -1,7 +1,7 @@
 import unittest
 import os
 import filecmp
-from fpindexer.indexer import index_path
+from fpindexer import index_path
 
 class TestIndexer(unittest.TestCase):
 
