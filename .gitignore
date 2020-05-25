@@ -1,0 +1,5 @@
+__pycache__
+dist
+build
+flashpoint_indexer.egg-info
+tests/test_folder/index.json
