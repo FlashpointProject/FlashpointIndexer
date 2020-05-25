@@ -30,7 +30,7 @@ setup(
     install_requires=[],
     entry_points={
         "console_scripts": [
-            "fpindexer=fpindexer.__main__:main",
+            "flashpoint-indexer=fpindexer.__main__:setup",
         ]
     },
 )

@@ -11,6 +11,10 @@ An `index.json` file will be made in the directory you run the indexer on.
 ### As a script
 > `python3 -m fpindexer [path]`
 
+OR
+
+> `flashpoint-indexer [path]`
+
 If path is not provided then it will index the working directory
 
 ### As a library
