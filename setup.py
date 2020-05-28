@@ -10,7 +10,7 @@ README = (HERE / "README.md").read_text()
 # This call to setup() does all the work
 setup(
     name="flashpoint-indexer",
-    version="1.0.0",
+    version="1.1.0",
     description="Creates/Updates an Index of files with hashes in a directory",
     long_description=README,
     long_description_content_type="text/markdown",
@@ -27,7 +27,7 @@ setup(
     ],
     packages=find_packages(exclude=("tests",)),
     include_package_data=True,
-    install_requires=[],
+    install_requires=['pyyaml', 'py7zr'],
     entry_points={
         "console_scripts": [
             "flashpoint-indexer=fpindexer.__main__:setup",

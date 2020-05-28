@@ -2,6 +2,8 @@ import hashlib
 import json
 import os
 import time
+import yaml
+from py7zr import SevenZipFile
 from pathlib import Path
 from .util import convert_size
 
@@ -9,10 +11,10 @@ BUF_SIZE = 65536
 
 class IndexedFile():
   path: str
+  gameId: str
   lastModified: int
   size: int
-  sha1: str
-  md5: str
+  sha256: str
 
 """Load an existing index file, if missing return an empty index"""
 def load_index(path: Path) -> dict:
@@ -27,21 +29,19 @@ def load_index(path: Path) -> dict:
       return index
   return {}
 
-"""Returns a tuple of md5 and sha1 hashes"""
-def hash_file(path) -> (str, str):
-  md5 = hashlib.md5()
-  sha1 = hashlib.sha1()
-
-  with open(path, 'rb') as f:
-    data = f.read(BUF_SIZE)
-    if data:
-      md5.update(data)
-      sha1.update(data)
+"""Gets the ID and Content Hash from inside metadata"""
+def get_meta_info(filePath, rootPath) -> (str, str):
+  with SevenZipFile(filePath, 'r') as archive:
+    if 'meta.yaml' in archive.getnames():
+      archive.extract(targets=['meta.yaml'], path=rootPath)
     else:
-      return None, None
-
-  return md5.hexdigest(), sha1.hexdigest()
-      
+      return '', ''
+  metaPath = os.path.join(rootPath, 'meta.yaml')
+  with open(metaPath) as f:
+    data = yaml.safe_load(f)
+    return data['ID'], data['Content Hash']
+  os.remove(metaPath)
+  pass
 
 """Returns an unhashed IndexedFile from a path"""
 def build_unhashed_index(filePath) -> IndexedFile:
@@ -79,7 +79,7 @@ def index_path(pathStr):
   for root, subdirs, files in os.walk(path):
     for f in files:
       # Don't index the index itself
-      if f == 'index.json':
+      if f == 'index.json' or not f.endswith('.7z'):
         continue
       filePath = os.path.join(root, f)
       relPath = os.path.relpath(filePath, path)
@@ -93,14 +93,14 @@ def index_path(pathStr):
          (oldFileInfo.size         != newFileInfo.size         ):
         # File new or changed, hash and update index
         countUpdated += 1
-        md5, sha1 = hash_file(filePath)
-        newFileInfo.md5 = md5
-        newFileInfo.sha1 = sha1
+        gameId, sha256 = get_meta_info(filePath, root)
+        newFileInfo.gameId = gameId
+        newFileInfo.sha256 = sha256
         index[relPath] = newFileInfo
-        print('File Updated - {0}\n\tMD5 - {1}\n\tSHA1 - {2}\n\tSize - {3}'.format(
+        print('File Updated - {0}\n\tID - {1}\n\tSHA256 - {2}\n\tSize - {3}'.format(
           newFileInfo.path,
-          newFileInfo.md5,
-          newFileInfo.sha1,
+          newFileInfo.gameId,
+          newFileInfo.sha256,
           convert_size(newFileInfo.size)
         ))
 
